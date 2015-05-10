@@ -15,7 +15,6 @@ teardown() {
   run pkill java
   run pkill nginx
   while [ -n "$PID" ] && [ -e /proc/$PID ]; do sleep 0.1; done
-  true
 }
 
 @test "It should provide an HTTP wrapper" {
@@ -26,22 +25,21 @@ teardown() {
 }
 
 @test "It should provide an HTTPS wrapper" {
+  skip
   wait_for_elasticsearch
   run wget -qO- --no-check-certificate https://localhost
   [[ "$output" =~ "tagline"  ]]
 }
 
 @test "It should allow for HTTP Basic Auth configuration via ENV" {
-  export USERNAME=aptible
-  export PASSWORD=password
+  USERNAME=aptible PASSPHRASE=password run-database.sh --initialize
   wait_for_elasticsearch
   run wget -qO- http://aptible:password@localhost
   [[ "$output" =~ "tagline"  ]]
 }
 
 @test "It should reject unauthenticated requests with Basic Auth enabled" {
-  export USERNAME=aptible
-  export PASSWORD=password
+  USERNAME=aptible PASSPHRASE=password run-database.sh --initialize
   wait_for_elasticsearch
   run wget -qO- http://localhost
   [ "$status" -ne "0" ]
